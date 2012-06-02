@@ -8,6 +8,8 @@
 #define BAUD 9600
 #include <util/delay.h>
 #include <stdio.h>
+#include "uart.c"
+
 
 // Count the number of overflows
 volatile uint64_t overflow_counter = 0;
@@ -34,9 +36,14 @@ ISR(INT0_vect) {
 		last_timer_state = TCNT1;
 		last_overflow_counter = overflow_counter;
 		last_pulse_counter = pulse_counter;
+		pulse_detected = true;
 	}
-	pulse_detected = true;
 }
+
+const char hex_chars[] = {'0','1','2','3','4','5','6','7','8','a','b','c','d','e','f'};
+
+#define uart_put_hex(character) uart_putc(hex_chars[((character)>>4)&0xf]); uart_putc(hex_chars[(character) & 0xf]);
+
 
 
 int main() {
@@ -58,21 +65,20 @@ int main() {
 	// Configure INT0 interrupt to trigger for falling edge
 	EICRA = (1<<ISC01);
 
-	// Configure UART
-	UCSR0B |= (1<<TXEN0) | (1<<RXEN0);    // UART TX und RX einschalten
-	UCSR0C |= (1<<URSEL)|(3<<UCSZ00);    // Asynchron 8N1 
-
-	UBRR0H = (uint8_t)( UART_UBRR_CALC( F_BAUDRATE, F_CPU ) >> 8 );
-	UBRR0L = (uint8_t)UART_UBRR_CALC( F_BAUDRATE, F_CPU );
-
 	// Enable interrupts
 	sei();
 
+	char i = 0;
+
 	for (;;) {
 		if (pulse_detected) {
+			uart_puts("pulse detected\r\n");
 			
 			pulse_detected = false;
 		}
+		i++;
+		uart_put_hex(i);
+		uart_puts("\r\n");
 	}
 
 	return 0;
