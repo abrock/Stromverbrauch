@@ -1,0 +1,23 @@
+set term svg
+set output "temp1.svg"
+
+set xdata time
+set timefmt "%s"
+
+plot \
+"logs/28d9075102000005" using 1:2 with lines title "Heizungsvorlauf" ,\
+"logs/287f085102000084" using 1:2 with lines title "Heizungsrücklauf" ,\
+"logs/101a712902080015" using 1:2 with lines title "Tafel" ,\
+"logs/101c0c2902080026" using 1:2 with lines title "Beamer" ,\
+"logs/108e29ce010800f8" using 1:2 with lines title "Getränkelager",\
+"logs/10b257290208008c" using 1:2 with lines title "Außentemperatur"
+
+set output "temp2.svg"
+
+plot \
+"logs/101a712902080015" using 1:2 with lines title "Tafel" ,\
+"logs/101c0c2902080026" using 1:2 with lines title "Beamer" ,\
+"logs/108e29ce010800f8" using 1:2 with lines title "Getränkelager",\
+"logs/10b257290208008c" using 1:2 with lines title "Außentemperatur"
+
+
