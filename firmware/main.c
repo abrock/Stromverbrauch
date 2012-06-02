@@ -40,18 +40,45 @@ ISR(INT0_vect) {
 	}
 }
 
-const char hex_chars[] = {'0','1','2','3','4','5','6','7','8','a','b','c','d','e','f'};
+const char hex_chars[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
-#define uart_put_hex(character) uart_putc(hex_chars[((character)>>4)&0xf]); uart_putc(hex_chars[(character) & 0xf]);
+#define uart_put_hex(character) \
+uart_putc(hex_chars[((character)>>4)&0x0f]); \
+uart_putc(hex_chars[((character)>>0)&0x0f]); 
 
 
+#define uart_put_64(character) \
+uart_putc(hex_chars[((character)>>60)&0x0f]); \
+uart_putc(hex_chars[((character)>>56)&0x0f]); \
+uart_putc(hex_chars[((character)>>52)&0x0f]); \
+uart_putc(hex_chars[((character)>>48)&0x0f]); \
+uart_putc(hex_chars[((character)>>44)&0x0f]); \
+uart_putc(hex_chars[((character)>>40)&0x0f]); \
+uart_putc(hex_chars[((character)>>36)&0x0f]); \
+uart_putc(hex_chars[((character)>>32)&0x0f]); \
+uart_putc(hex_chars[((character)>>28)&0x0f]); \
+uart_putc(hex_chars[((character)>>24)&0x0f]); \
+uart_putc(hex_chars[((character)>>20)&0x0f]); \
+uart_putc(hex_chars[((character)>>16)&0x0f]); \
+uart_putc(hex_chars[((character)>>12)&0x0f]); \
+uart_putc(hex_chars[((character)>>8)&0x0f]); \
+uart_putc(hex_chars[((character)>>4)&0x0f]); \
+uart_putc(hex_chars[((character)>>0)&0x0f]); 
+
+#define uart_put_16(character) \
+uart_putc(hex_chars[((character)>>12)&0x0f]); \
+uart_putc(hex_chars[((character)>>8)&0x0f]); \
+uart_putc(hex_chars[((character)>>4)&0x0f]); \
+uart_putc(hex_chars[((character)>>0)&0x0f]); 
 
 int main() {
 
 	// Use default timer mode (no compare match, no pwm)
 	TCCR1A = 0;
 	// Clock select 101 for CPU_FREQ/1024
-	TCCR1B = 5;
+	TCCR1B = (1<<CS10)|(1<<CS12);
+
+	TIMSK1 = (1<<TOIE1);
 
 
 	// Configure PD2 as input
@@ -64,21 +91,23 @@ int main() {
 
 	// Configure INT0 interrupt to trigger for falling edge
 	EICRA = (1<<ISC01);
-
+   
+	uart_init( UART_BAUD_SELECT(F_BAUDRATE,F_CPU) );
 	// Enable interrupts
 	sei();
-
-	char i = 0;
+	
+	uart_puts("\r\n");
 
 	for (;;) {
 		if (pulse_detected) {
-			uart_puts("pulse detected\r\n");
-			
+			uart_put_64(last_pulse_counter);
+			uart_putc('\t');
+			uart_put_64(last_overflow_counter);
+			uart_putc('\t');
+			uart_put_16(last_timer_state);
+			uart_puts("\r\n");
 			pulse_detected = false;
 		}
-		i++;
-		uart_put_hex(i);
-		uart_puts("\r\n");
 	}
 
 	return 0;
