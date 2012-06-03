@@ -130,20 +130,25 @@ void check_for_timediff() {
 	}
 	last_time = current_time;
 	
+	if (last_pulse_counter == pulse_counter) {
+		return;
+	}
 	double last_uC_time = uC_time2double(last_overflow_counter, last_timer_state);
 	double current_uC_time = uC_time2double(overflow_counter, timer_state);
 	double timediff = current_uC_time - last_uC_time;
 	
-	last_overflow_counter = overflow_counter;
-	last_timer_state = timer_state;
-	last_pulse_counter = pulse_counter;
-	if (last_pulse_counter == pulse_counter) {
-		return;
-	}
 	if (last_pulse_counter > pulse_counter) {
 		cerr << "uC-restart detected" << endl;
 		first_counter = true;
+		last_overflow_counter = overflow_counter;
+		last_timer_state = timer_state;
+		last_pulse_counter = pulse_counter;
+		return;
 	}
+
+	last_overflow_counter = overflow_counter;
+	last_timer_state = timer_state;
+	last_pulse_counter = pulse_counter;
 	if (timediff <= 0) {
 		return;
 	}
