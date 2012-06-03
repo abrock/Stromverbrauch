@@ -129,6 +129,14 @@ void check_for_timediff() {
 		return;
 	}
 	last_time = current_time;
+	
+	double last_uC_time = uC_time2double(last_overflow_counter, last_timer_state);
+	double current_uC_time = uC_time2double(overflow_counter, timer_state);
+	double timediff = current_uC_time - last_uC_time;
+	
+	last_overflow_counter = overflow_counter;
+	last_timer_state = timer_state;
+	last_pulse_counter = pulse_counter;
 	if (last_pulse_counter == pulse_counter) {
 		return;
 	}
@@ -136,18 +144,12 @@ void check_for_timediff() {
 		cerr << "uC-restart detected" << endl;
 		first_counter = true;
 	}
-	double last_uC_time = uC_time2double(last_overflow_counter, last_timer_state);
-	double current_uC_time = uC_time2double(overflow_counter, timer_state);
-	double timediff = current_uC_time - last_uC_time;
 	if (timediff <= 0) {
 		return;
 	}
 	double power = 3600.0*(double)(pulse_counter-last_pulse_counter)/timediff;
 
 	
-	last_overflow_counter = overflow_counter;
-	last_timer_state = timer_state;
-	last_pulse_counter = pulse_counter;
 	cout << setprecision(20) << "yay\t" << power << endl;
 	
 	stringstream command1, command2;
@@ -155,7 +157,12 @@ void check_for_timediff() {
 	command1 << "echo \"put electricity.power " << tim << " " << power << " location=RZL \"  | nc -w 5 -q 0 labs.in.zekjur.net 4242";
 	command2 << "echo \"put electricity.consumption " << tim << " " << pulse_counter << " location=RZL \" | nc -w 5 -q 0 labs.in.zekjur.net 4242";
 	cout << "sending data to server...";
-	system(command1.str().c_str());
+
+
+	// Simple check for plausability
+	if (power < 230*63*3) {
+		system(command1.str().c_str());
+	}
 	system(command2.str().c_str());
 	cout << "done." << endl;
 	cout << command1.str() << endl << command2.str() << endl;
