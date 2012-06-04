@@ -109,12 +109,20 @@ void put_line(stringstream& line) {
 	overflow_counter = hex2uint64(_overflow_counter);
 	timer_state = hex2uint64(_timer_state);
 
+
 	if (first_counter) {
 		last_pulse_counter = pulse_counter;
 		last_overflow_counter = overflow_counter;
 		last_timer_state = timer_state;
 		first_counter = false;
 	}
+	fstream out;
+	out.open("/var/www/strom/data/newlog", fstream::out | fstream::app);
+
+	time_t tim = time(NULL);
+
+	out << tim << "\t" << uC_time2double(overflow_counter, timer_state) << "\t" << pulse_counter << endl;
+	out.close();
 
 	cerr << '#' << endl;
 }
