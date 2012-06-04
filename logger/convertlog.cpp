@@ -8,6 +8,14 @@ void trim(string& s) {
 		pos++;
 	}
 	s = s.erase(0, pos);
+	if (s.size() < 1) {
+		return;
+	}
+	pos = s.size() -1;
+	while (pos > 0 && (s[pos] == ' ' || s[pos] == '\r' || s[pos] == '\n' || s[pos] == '\t')) {
+		pos--;
+	}
+	s = s.substr(0,pos);
 }
 
 int main(void) {
