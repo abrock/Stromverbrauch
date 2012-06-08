@@ -1,2 +1,2 @@
 default:
-	g++ -Wall -pedantic -g -o log logger.cpp -lserial
+	g++ -I../include -Wall -pedantic -g -o log logger.cpp -lserial

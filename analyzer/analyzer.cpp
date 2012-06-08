@@ -19,19 +19,11 @@ int main(int argc, char* argv[]) {
 	Logger<float> my_log;
 
 	if (argc < 3) {
-		cerr << "Usage: " << argv[0] << " device baudrate" << endl;
+		cerr << "Usage: " << argv[0] << " source dest" << endl;
 		return 0;
 	}
 
-	int baudrate = 9600;
-	{
-		stringstream tmp(argv[2]);
-		tmp >> baudrate;
-	}
-
-	my_log.open_device(argv[1], baudrate);
-	my_log.logging();
-
+	my_log.analyze(argv[1], argv[2]);
 
 	return 0;
 }
