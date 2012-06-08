@@ -129,7 +129,7 @@ void put_line(stringstream& line) {
 
 	time_t tim = time(NULL);
 
-	out << setprecision(20) << tim << "\t" << uC_time2double(overflow_counter, timer_state) << "\t" << overflow_counter << "\t" << timer_state << pulse_counter << endl;
+	out << setprecision(20) << tim << "\t" << uC_time2double(overflow_counter, timer_state) << "\t" << overflow_counter << "\t" << timer_state << "\t" <<  pulse_counter << endl;
 	out.close();
 
 	cerr << '#' << endl;
