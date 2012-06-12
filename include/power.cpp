@@ -29,7 +29,12 @@ void analyze(const char* file_source, const char* file_dest) {
 	fstream source, dest;
 	source.open(file_source, fstream::in);
 	dest.open(file_dest, fstream::out);
-	while (source.is_open()) {
+	bool has_previous = false, has_previous_power = false;
+	uint64_t last_pulse_counter = 0, last_timestamp = 0, last_overflow_counter = 0, last_timer_state = 0;
+	T last_uc_time = 0;
+	T previous_power = 0;
+	vector<T> powers, power_changes;
+	while (!source.eof() && source) {
 		const size_t buf_size = 1024*1024;
 		char buf[buf_size];
 		source.getline(buf, buf_size);
@@ -37,8 +42,51 @@ void analyze(const char* file_source, const char* file_dest) {
 		if (line.str().size() < 10) {
 			continue;
 		}
+		uint64_t timestamp, overflow_counter, timer_state, pulse_counter;
+		T uc_time;
+		line >> timestamp;
+		line >> uc_time;
+		line >> overflow_counter;
+		line >> timer_state;
+		line >> pulse_counter;
+		if (has_previous) {
+			T power = 3.6*((T)pulse_counter-(T)last_pulse_counter)/(uc_time - last_uc_time);
+			powers.push_back(power);
+			if (!has_previous_power) {
+				previous_power = power;
+				has_previous_power = true;
+			}
+			T power_change = (power-previous_power)/(uc_time - last_uc_time);
+			power_changes.push_back(power_change);
+			dest << timestamp << "\t" << uc_time << "\t" << overflow_counter << "\t" << timer_state << "\t" << pulse_counter << "\t" << power << "\t" << power_change << endl;
+			previous_power = power;
+		}
+		else {
+			has_previous = true;
+		}
+		last_timestamp = timestamp;
+		last_uc_time = uc_time;
+		last_overflow_counter = overflow_counter;
+		last_timer_state = timer_state;
+		last_pulse_counter = pulse_counter;
 
 	}
+
+	distribution_output(powers, file_dest, "_powers");
+	distribution_output(power_changes, file_dest, "_power_changes");
+}
+
+void distribution_output(vector<T>& values, const char* prefix, const char* name) {
+	if (values.size() == 0) {
+		return;
+	}
+	sort(values.begin(), values.end());
+	fstream out;
+	out.open(string(string(prefix)+string(name)).c_str(), fstream::out);
+	for (size_t i = 0; i < values.size(); i++) {
+		out << values[i] << "\t" << (double)i/(double)values.size() << endl;
+	}
+	out.close();
 }
 
 void put_char(char c) {
