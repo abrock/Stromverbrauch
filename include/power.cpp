@@ -3,6 +3,8 @@ using namespace LibSerial;
 
 #include "LibSerialHelper.h"
 
+#include "api-key.txt"
+
 template<class T>
 class Logger {
 public:
@@ -225,15 +227,29 @@ void check_for_timediff() {
 		if (power < 230*63*3) {
 			command1 << "echo \"put electricity.power " << tim << " " << power << " location=RZL \"  | nc -w 5 -q 0 labs.in.zekjur.net 4242";
 			system(command1.str().c_str());
+			push_cosm(power, pulse_counter);
 		}
 	}
 	system(command2.str().c_str());
 	cout << "done." << endl;
 	cout << command1.str() << endl << command2.str() << endl;
+
 	
 	last_overflow_counter = overflow_counter;
 	last_timer_state = timer_state;
 	last_pulse_counter = pulse_counter;
+}
+
+void push_cosm(T power, uint64_t pulse_counter)  {
+	stringstream command;
+	fstream out;
+	out.open("datafile.txt", fstream::out);
+	out << setprecision(8) << "Strom_Gesamtverbrauch," << (int32_t)round((double)pulse_counter/1000.0) << endl
+			<< "Strom_Leistung," << (int32_t)round(power) << endl;
+	out.close();
+	command << "curl --request PUT --data-binary @datafile.txt --header \"X-ApiKey: " << API_KEY << "\" " << API_URL;
+	system(command.str().c_str());
+	cout << command.str() << endl;
 }
 
 string get_time() {
