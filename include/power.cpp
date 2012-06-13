@@ -224,7 +224,7 @@ void check_for_timediff() {
 	// Simple check for plausability
 	if (timediff > 0) {
 		double power = 3600.0*(double)(pulse_counter-last_pulse_counter)/timediff;
-		if (power < 230*63*3) {
+		if (power < 230*35*3) {
 			command1 << "echo \"put electricity.power " << tim << " " << power << " location=RZL \"  | nc -w 5 -q 0 labs.in.zekjur.net 4242";
 			system(command1.str().c_str());
 			push_cosm(power, pulse_counter);
