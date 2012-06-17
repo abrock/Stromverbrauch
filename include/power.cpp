@@ -250,7 +250,7 @@ void push_cosm(T power, uint64_t pulse_counter)  {
 	stringstream command;
 	fstream out;
 	out.open("datafile.txt", fstream::out);
-	out << setprecision(20) << "Strom_Gesamtverbrauch," << round((double)pulse_counter/10.0)/100.0 << endl
+	out << setprecision(14) << "Strom_Gesamtverbrauch," << round((double)pulse_counter/10.0)/100.0 << endl
 			<< "Strom_Leistung," << (int32_t)round(power) << endl;
 	out.close();
 	command << "curl --request PUT --data-binary @datafile.txt --header \"X-ApiKey: " << API_KEY << "\" " << API_URL;
