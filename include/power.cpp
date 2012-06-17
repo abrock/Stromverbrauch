@@ -28,9 +28,10 @@ bool open_device(const char * device, int baudrate) {
  * Analyze a given raw logfile
  */
 void analyze(const char* file_source, const char* file_dest) {
-	fstream source, dest;
+	fstream source, dest, dest_invalid;
 	source.open(file_source, fstream::in);
 	dest.open(file_dest, fstream::out);
+	dest_invalid.open(string(string(file_dest)+string("_invalid")).c_str(), fstream::out);
 	bool has_previous = false, has_previous_power = false;
 	uint64_t last_pulse_counter = 0, last_timestamp = 0, last_overflow_counter = 0, last_timer_state = 0;
 	T last_uc_time = 0;
@@ -60,6 +61,11 @@ void analyze(const char* file_source, const char* file_dest) {
 			}
 			T power_change = (power-previous_power)/(uc_time - last_uc_time);
 			power_changes.push_back(power_change);
+			
+			// Check for invalid power and write to separate log
+			if (fabs(3.6*((T)pulse_counter-(T)last_pulse_counter)) > fabs((uc_time-last_uc_time)*230.0*35.0*3.0)) {
+				dest_invalid << timestamp << "\t" << uc_time << "\t" << overflow_counter << "\t" << timer_state << "\t" << pulse_counter << "\t" << power << "\t" << power_change << endl;
+			}
 			dest << timestamp << "\t" << uc_time << "\t" << overflow_counter << "\t" << timer_state << "\t" << pulse_counter << "\t" << power << "\t" << power_change << endl;
 			previous_power = power;
 		}
@@ -244,7 +250,7 @@ void push_cosm(T power, uint64_t pulse_counter)  {
 	stringstream command;
 	fstream out;
 	out.open("datafile.txt", fstream::out);
-	out << setprecision(8) << "Strom_Gesamtverbrauch," << (int32_t)round((double)pulse_counter/1000.0) << endl
+	out << setprecision(8) << "Strom_Gesamtverbrauch," << ((double)((int32_t)round((double)pulse_counter/10.0)))/100.0 << endl
 			<< "Strom_Leistung," << (int32_t)round(power) << endl;
 	out.close();
 	command << "curl --request PUT --data-binary @datafile.txt --header \"X-ApiKey: " << API_KEY << "\" " << API_URL;
