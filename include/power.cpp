@@ -20,7 +20,7 @@ Logger() {
  */
 bool open_device(const char * device, int baudrate) {
 	LibSerialHelper helper;
-  helper.Open(usb0, "/dev/ttyUSB0", baudrate);
+  helper.Open(usb0, device, baudrate);
 	return true;
 }
 
