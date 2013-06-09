@@ -181,7 +181,7 @@ void put_line(stringstream& line) {
 		first_counter = false;
 	}
 	fstream out;
-	out.open("/var/www/strom/data/newlog", fstream::out | fstream::app);
+	out.open("/root/Stromverbrauch/newlog", fstream::out | fstream::app);
 
 	time_t tim = time(NULL);
 
@@ -210,7 +210,7 @@ void check_for_timediff() {
 	double timediff = current_uC_time - last_uC_time;
 	
 	if (last_pulse_counter > pulse_counter) {
-		cerr << "uC-restart detected" << endl;
+		cerr << "######uC-restart detected" << endl;
 		first_counter = true;
 		last_overflow_counter = overflow_counter;
 		last_timer_state = timer_state;
