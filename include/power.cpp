@@ -5,10 +5,6 @@ using namespace LibSerial;
 
 #include "api-key.txt"
 
-bool door_is_open() {
-	return (system("./raumstatus.sh") != 0);
-}
-
 template<class T>
 class Logger {
 	public:
@@ -17,8 +13,6 @@ class Logger {
 			lineend = false;
 			last_time = get_time();
 			first_counter = true;
-			door_closed_since = time(NULL);
-			last_door_check = time(NULL);
 			disable_index = 0;
 		}
 
@@ -307,41 +301,10 @@ class Logger {
 				}
 				check_for_timediff();
 				usleep(1000000);
-				check_door();
 			}
 			return 0;
 		}
 
-		void check_door() {
-			const time_t now = time(NULL);
-			const int door_check_intervall = 30;
-			const int seconds_until_shutdown = 300;
-			if (now - last_door_check < door_check_intervall) {
-				return;
-			}
-			cout << "Checking door state:";
-			last_door_check = now;
-			const bool door_open = door_is_open();
-			if (door_open) {
-				cout << " open" << endl;
-				door_closed_since = now;
-			}
-			else {
-				cout << " closed for " << now - door_closed_since << "s" << endl;
-				if (now - door_closed_since > seconds_until_shutdown && now - door_closed_since < seconds_until_shutdown + 6 * door_check_intervall) {
-					disable_index++;
-					if (disable_index % 2 == 0) {
-						cout << "Disable 1" << endl;
-						usb0.put('1');
-					}
-					else {
-						cout << "Disable 2" << endl;
-						usb0.put('2');
-					}
-				}
-			}
-
-		}
 
 	private:
 		SerialStream usb0;
@@ -353,8 +316,6 @@ class Logger {
 		uint64_t overflow_counter, last_overflow_counter;
 		uint64_t timer_state, last_timer_state;
 
-		time_t last_door_check;
-		time_t door_closed_since;
 		int disable_index;
 
 };
