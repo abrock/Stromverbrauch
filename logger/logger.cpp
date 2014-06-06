@@ -16,7 +16,9 @@
 
 int main(int argc, char* argv[]) {
 
-	Logger<float> my_log;
+
+	typedef double T;
+	Logger<T> my_log;
 
 	if (argc < 3) {
 		cerr << "Usage: " << argv[0] << " device baudrate" << endl;
